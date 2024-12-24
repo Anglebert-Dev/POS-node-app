@@ -2,12 +2,12 @@ class PrintJob{
     constructor(content){
         const data = JSON.parse(content);
 
-        this.bussinessId = data.bussinessId;
+        this.businessId = data.businessId;
         this.printerId = data.printerId;
         this.pdfContent = data.pdfContent;
         this.metadata = data.metadata;
 
-        if(!this.bussinessId || !this.printerId || !this.pdfContent || !this.metadata){
+        if(!this.businessId || !this.printerId || !this.pdfContent || !this.metadata){
             throw new Error('Print Job missing required fields');
         }
     }

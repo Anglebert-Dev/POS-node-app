@@ -5,9 +5,13 @@ const { PrintError } = require("../utils/errors");
 
 class PrinterServer {
   async print(printerId, pdfBuffer, metadata) {
-    const printer = config.printers[printerId];
+    // Find the printer by IP address
+    const printer = Object.values(config.printers).find(
+      (p) => p.ip === printerId
+    );
+
     if (!printer) {
-      throw new PrintError(`Printer ${printerId} not found`);
+      throw new PrintError(`Printer with address ${printerId} not found`);
     }
 
     if (printer.connection_type === "network") {

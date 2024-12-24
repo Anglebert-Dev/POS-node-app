@@ -1,3 +1,4 @@
+// rabbitmq.service.js
 const amqp = require("amqplib");
 const config = require("../config");
 const logger = require("./logger.service");
@@ -9,7 +10,6 @@ class RabbitMQService {
   }
 
   async connect() {
-    console.log(config.rabbitmq.url);
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
       this.channel = await this.connection.createChannel();
@@ -20,30 +20,50 @@ class RabbitMQService {
       });
 
       logger.info("RabbitMQ connection established");
-
       return this.channel;
     } catch (error) {
-      // throw new PrintError('RabbitMQ connection failed', true);
       logger.error("RabbitMQ connection failed", error);
       setTimeout(() => this.connect(), 5000);
     }
   }
 
   async setupQueue(queueName) {
-
     if (!this.channel) {
-      throw new Error('No RabbitMQ channel available');
+      throw new Error("No RabbitMQ channel available");
     }
+
     try {
+      // Consumer creates the queue with all needed properties
       await this.channel.assertQueue(queueName, {
         durable: true,
-        deadLetterExchange: "dead-letter-exchange",
-        messageTtl: 24 * 60 * 60 * 1000,
+        exclusive: false,
+        autoDelete: false,
+        arguments: {
+          "x-dead-letter-exchange": "dead-letter-exchange",
+          "x-message-ttl": 24 * 60 * 60 * 1000, // 24 hours
+        },
       });
+
+      // Set up dead letter exchange
+      // await this.channel.assertExchange("dead-letter-exchange", "direct", {
+      //   durable: true,
+      // });
+
+      // // Create dead letter queue
+      // await this.channel.assertQueue(`${queueName}_dead_letter`, {
+      //   durable: true,
+      // });
+
+      // Bind dead letter queue to exchange
+      // await this.channel.bindQueue(
+      //   `${queueName}_dead_letter`,
+      //   "dead-letter-exchange",
+      //   queueName
+      // );
+
       await this.channel.prefetch(1);
       logger.info(`Queue ${queueName} setup complete`);
     } catch (error) {
-      // throw new PrintError(`Queue ${queueName} creation failed`, true);
       logger.error(`Queue ${queueName} creation failed`, error);
       throw error;
     }
@@ -54,10 +74,27 @@ class RabbitMQService {
       await this.channel.consume(queueName, async (msg) => {
         if (msg) {
           try {
-            await callback(msg);
+            // ADDED: Content type checking
+            const contentType = msg.properties.contentType;
+            let content;
+
+            // ADDED: Content handling logic based on type
+            if (contentType === "application/pdf") {
+              // Direct PDF handling
+              content = msg.content;
+            } else {
+              // JSON handling
+              content = JSON.parse(msg.content.toString());
+            }
+
+            // MODIFIED: Changed callback parameter to include properties
+            await callback({ content, properties: msg.properties });
+            this.channel.ack(msg);
           } catch (error) {
             logger.error("Error processing message:", error);
-            this.channel.nack(msg, false, error.isRetryable);
+            // ADDED: Improved requeue logic
+            const requeue = !(error instanceof SyntaxError);
+            this.channel.nack(msg, false, requeue);
           }
         }
       });
@@ -79,6 +116,5 @@ class RabbitMQService {
     }
   }
 }
-
 
 module.exports = new RabbitMQService();
