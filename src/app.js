@@ -20,6 +20,7 @@ class PrintApp {
     }
 
     this.queueName = `${config.queuePrefix}${config.businessId}`;
+    this.printJobsDir = path.join(__dirname, "printJobs");
     this.app = express();
 
     this.setupExpress();
@@ -38,55 +39,89 @@ class PrintApp {
     // this.app.use(errorMiddleware);
   }
 
- 
+  // Ensure the printJobs directory exists
+  ensurePrintJobsDirectory() {
+    if (!fs.existsSync(this.printJobsDir)) {
+      fs.mkdirSync(this.printJobsDir);
+    }
+  }
+
+  // Save the print job to a file
+  async savePrintJobToFile(printerId, content, extension = "pdf") {
+    const timestamp = Date.now();
+    const fileName = `${printerId}_${timestamp}.${extension}`;
+    const filePath = path.join(this.printJobsDir, fileName);
+
+    return new Promise((resolve, reject) => {
+      fs.writeFile(filePath, content, (err) => {
+        if (err) {
+          reject(new Error(`Failed to save print job: ${err.message}`));
+        } else {
+          resolve(filePath);
+        }
+      });
+    });
+  }
+
   async start() {
     try {
       await rabbitMQService.connect();
       await rabbitMQService.setupQueue(this.queueName);
 
-      // MODIFIED: Updated consume callback to handle both PDF and JSON messages
-      await rabbitMQService.consume(this.queueName, async ({ content, properties }) => {
-        try {
-          // ADDED: Content type handling logic
-          if (properties.contentType === 'application/pdf') {
-            // ADDED: Direct PDF handling
-            await printerService.print(
-              properties.headers.printerId,
-              content,
-              properties.headers
-            );
-          } else {
-            // ADDED: JSON message handling
-            if (content.businessId !== config.businessId) {
-              logger.error(`Received print job for wrong business: ${content.businessId}`);
-              return;
+      await rabbitMQService.consume(
+        this.queueName,
+        async ({ content, properties }) => {
+          try {
+            let filePath;
+
+            if (properties.contentType === "application/pdf") {
+              // Save PDF file before printing
+              filePath = await this.savePrintJobToFile(
+                properties.headers.printerId,
+                content
+              );
+              await printerService.print(
+                properties.headers.printerId,
+                content,
+                properties.headers
+              );
+            } else {
+              // Save base64 content as PDF before printing
+              const pdfBuffer = Buffer.from(content.content, "base64");
+              filePath = await this.savePrintJobToFile(
+                content.printerId,
+                pdfBuffer
+              );
+              await printerService.print(
+                content.printerId,
+                pdfBuffer,
+                content.metadata
+              );
             }
 
-            const pdfBuffer = Buffer.from(content.content, 'base64');
-            await printerService.print(
-              content.printerId,
-              pdfBuffer,
-              content.metadata
+            logger.info(`Print job saved at ${filePath}`);
+            logger.info(
+              `Print job completed for printer: ${
+                properties.headers.printerId || content.printerId
+              }`
             );
+          } catch (error) {
+            logger.error(`Print job failed: ${error.message}`);
+            throw error;
           }
-
-          // MODIFIED: Updated log message to handle both message types
-          logger.info(`Print job completed for printer: ${properties.headers.printerId || content.printerId}`);
-        } catch (error) {
-          logger.error(`Print job failed: ${error.message}`);
-          throw error;
         }
-      });
+      );
 
       this.app.listen(config.port, () => {
-        logger.info(`Print service for ${config.businessId} running on port ${config.port}`);
+        logger.info(
+          `Print service for ${config.businessId} running on port ${config.port}`
+        );
       });
     } catch (error) {
       logger.error(`Failed to start print service: ${error.message}`);
       process.exit(1);
     }
   }
-
 
   async stop() {
     try {
