@@ -9,6 +9,7 @@ class RabbitMQService {
   }
 
   async connect() {
+    console.log(config.rabbitmq.url);
     try {
       this.connection = await amqp.connect(config.rabbitmq.url);
       this.channel = await this.connection.createChannel();
@@ -29,6 +30,10 @@ class RabbitMQService {
   }
 
   async setupQueue(queueName) {
+
+    if (!this.channel) {
+      throw new Error('No RabbitMQ channel available');
+    }
     try {
       await this.channel.assertQueue(queueName, {
         durable: true,

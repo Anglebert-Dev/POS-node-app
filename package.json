@@ -1,4 +1,17 @@
 {
+  "name": "pos-node-app",
+  "version": "1.0.0",
+  "description": "POS App",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "start": "nodemon src/index.js  --trace-warnings",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+
   "dependencies": {
     "amqplib": "^0.10.5",
     "cors": "^2.8.5",
@@ -7,4 +20,5 @@
     "helmet": "^8.0.0",
     "winston": "^3.17.0"
   }
+
 }

@@ -9,6 +9,7 @@ const rabbitMQService = require("./services/rabbitmq.service");
 const printerService = require("./services/printer.service");
 const logger = require("./services/logger.service");
 const PrintJob = require("./models/print-job.model");
+const dotenv = require("dotenv").config();
 
 class PrintApp {
   constructor() {
@@ -28,12 +29,11 @@ class PrintApp {
     this.app.use(cors());
     this.app.use(express.json());
     this.app.use(loggerMiddleware);
-    // this.app.use(errorMiddleware);
   }
 
   setupRoutes() {
     this.app.use("/health", healthRoutes);
-    this.app.use(errorMiddleware);
+    // this.app.use(errorMiddleware);
   }
 
   async start() {

@@ -1,0 +1,44 @@
+{"code":"ECONNREFUSED","level":"error","message":"RabbitMQ connection failed","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1121:18)\n    at afterConnectMultiple (node:net:1688:7)","timestamp":"2024-12-23T15:51:41.148Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T15:51:46.130Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T15:51:46.797Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T15:51:47.036Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T15:51:47.062Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T15:56:44.576Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T15:56:45.148Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T15:56:45.390Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T15:56:45.398Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T16:00:11.525Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T16:00:12.245Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T16:00:12.552Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T16:00:12.567Z"}
+{"level":"error","message":"RabbitMQ connection failed Handshake terminated by server: 403 (ACCESS-REFUSED) with message \"ACCESS_REFUSED\"","stack":"Error: Handshake terminated by server: 403 (ACCESS-REFUSED) with message \"ACCESS_REFUSED\"\n    at afterStartOk (D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:169:16)\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:104:11\n    at TLSSocket.recv (D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:453:9)\n    at Object.onceWrapper (node:events:632:28)\n    at TLSSocket.emit (node:events:518:28)\n    at emitReadable_ (node:internal/streams/readable:834:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","timestamp":"2024-12-23T16:00:28.336Z"}
+{"code":"ECONNREFUSED","level":"error","message":"RabbitMQ connection failed","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1121:18)\n    at afterConnectMultiple (node:net:1688:7)","timestamp":"2024-12-23T16:00:37.395Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T16:07:38.920Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T16:07:39.533Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T16:07:39.941Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T16:07:39.958Z"}
+{"level":"error","message":"RabbitMQ connection failed Expected ConnectionOpenOk; got <ConnectionClose channel:0>","stack":"Error: Expected ConnectionOpenOk; got <ConnectionClose channel:0>\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:113:16\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:104:11\n    at TLSSocket.recv (D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:453:9)\n    at Object.onceWrapper (node:events:632:28)\n    at TLSSocket.emit (node:events:518:28)\n    at emitReadable_ (node:internal/streams/readable:834:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","timestamp":"2024-12-23T16:08:33.394Z"}
+{"level":"error","message":"RabbitMQ connection failed Expected ConnectionOpenOk; got <ConnectionClose channel:0>","stack":"Error: Expected ConnectionOpenOk; got <ConnectionClose channel:0>\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:113:16\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:104:11\n    at TLSSocket.recv (D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:453:9)\n    at Object.onceWrapper (node:events:632:28)\n    at TLSSocket.emit (node:events:518:28)\n    at emitReadable_ (node:internal/streams/readable:834:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","timestamp":"2024-12-23T16:10:21.644Z"}
+{"level":"error","message":"RabbitMQ connection failed Expected ConnectionOpenOk; got <ConnectionClose channel:0>","stack":"Error: Expected ConnectionOpenOk; got <ConnectionClose channel:0>\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:113:16\n    at D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:104:11\n    at TLSSocket.recv (D:\\POS-node-app\\node_modules\\amqplib\\lib\\connection.js:453:9)\n    at Object.onceWrapper (node:events:632:28)\n    at TLSSocket.emit (node:events:518:28)\n    at emitReadable_ (node:internal/streams/readable:834:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)","timestamp":"2024-12-23T16:10:26.490Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T16:13:10.964Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T16:13:11.463Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T16:13:11.705Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T16:13:11.722Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T20:12:03.326Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T20:12:04.141Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T20:12:04.551Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T20:12:04.574Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T21:01:26.439Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T21:01:27.147Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T21:01:27.455Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T21:01:27.486Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T21:32:41.474Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-23T21:33:23.878Z"}
+{"level":"info","message":"Queue print_queue_4 setup complete","timestamp":"2024-12-23T21:33:24.387Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_4","timestamp":"2024-12-23T21:33:24.695Z"}
+{"level":"info","message":"Print service for 4 running on port 3123","timestamp":"2024-12-23T21:33:24.720Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-24T12:04:08.266Z"}
+{"level":"info","message":"RabbitMQ connection established","timestamp":"2024-12-24T12:05:27.832Z"}
+{"level":"info","message":"Queue print_queue_2 setup complete","timestamp":"2024-12-24T12:05:28.341Z"}
+{"level":"info","message":"Started consuming from queue: print_queue_2","timestamp":"2024-12-24T12:05:28.648Z"}
+{"level":"info","message":"Print service for 2 running on port 3123","timestamp":"2024-12-24T12:05:28.670Z"}
