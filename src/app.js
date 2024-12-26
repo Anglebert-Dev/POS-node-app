@@ -7,9 +7,8 @@ const errorMiddleware = require("./middleware/error.middleware");
 const loggerMiddleware = require("./middleware/logger.middleware");
 const rabbitMQService = require("./services/rabbitmq.service");
 const printerService = require("./services/printer.service");
-const logger = require("./services/logger.service");
+const notificationService = require("./services/notification.service");
 const PrintJob = require("./models/print-job.model");
-const dotenv = require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 
@@ -28,6 +27,12 @@ class PrintApp {
   }
 
   setupExpress() {
+    // Add request ID middleware for error tracking
+    this.app.use((req, res, next) => {
+      req.id = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      next();
+    });
+
     this.app.use(helmet());
     this.app.use(cors());
     this.app.use(express.json());
@@ -36,27 +41,73 @@ class PrintApp {
 
   setupRoutes() {
     this.app.use("/health", healthRoutes);
-    // this.app.use(errorMiddleware);
+
+    // Error handling should be the last middleware
+    this.app.use(errorMiddleware);
+
+    // Catch-all for unhandled routes
+    this.app.use((req, res, next) => {
+      const error = new Error("Not Found");
+      error.statusCode = 404;
+      next(error);
+    });
   }
 
-  // Ensure the printJobs directory exists
   ensurePrintJobsDirectory() {
     if (!fs.existsSync(this.printJobsDir)) {
       fs.mkdirSync(this.printJobsDir);
     }
   }
 
-  // Save the print job to a file
-  async savePrintJobToFile(printerId, content, extension = "pdf") {
-    const timestamp = Date.now();
-    const fileName = `${printerId}_${timestamp}.${extension}`;
+  async savePrintJobToFile(
+    printerId,
+    content,
+    extension = "pdf",
+    metadata = {}
+  ) {
+    const baseFileName = metadata.fileName || `${printerId}`;
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+    // Check if file already exists (without timestamp)
+    const files = fs.readdirSync(this.printJobsDir);
+    const existingFile = files.find((file) => {
+      // Remove timestamp portion from existing files for comparison
+      const existingBaseName = file.split("_20")[0]; // Split at timestamp prefix
+      return existingBaseName === baseFileName;
+    });
+
+    if (existingFile) {
+      notificationService.logSystemNotification("Print Job Duplicate", {
+        fileName: existingFile,
+        printerId,
+        metadata,
+      });
+      // Return the path of existing file
+      return path.join(this.printJobsDir, existingFile);
+    }
+
+    // If file doesn't exist, save with timestamp
+    const fileName = `${baseFileName}_${timestamp}.${extension}`;
     const filePath = path.join(this.printJobsDir, fileName);
 
     return new Promise((resolve, reject) => {
       fs.writeFile(filePath, content, (err) => {
         if (err) {
-          reject(new Error(`Failed to save print job: ${err.message}`));
+          const error = new Error(`Failed to save print job: ${err.message}`);
+          notificationService.logSystemNotification("File Save Error", {
+            error: error.message,
+            printerId,
+            filePath,
+            metadata,
+            stack: error.stack,
+          });
+          reject(error);
         } else {
+          notificationService.logSystemNotification("File Save Success", {
+            fileName,
+            printerId,
+            metadata,
+          });
           resolve(filePath);
         }
       });
@@ -75,10 +126,11 @@ class PrintApp {
             let filePath;
 
             if (properties.contentType === "application/pdf") {
-              // Save PDF file before printing
               filePath = await this.savePrintJobToFile(
                 properties.headers.printerId,
-                content
+                content,
+                "pdf",
+                properties.headers
               );
               await printerService.print(
                 properties.headers.printerId,
@@ -86,7 +138,6 @@ class PrintApp {
                 properties.headers
               );
             } else {
-              // Save base64 content as PDF before printing
               const pdfBuffer = Buffer.from(content.content, "base64");
               filePath = await this.savePrintJobToFile(
                 content.printerId,
@@ -99,26 +150,31 @@ class PrintApp {
               );
             }
 
-            logger.info(`Print job saved at ${filePath}`);
-            logger.info(
-              `Print job completed for printer: ${
-                properties.headers.printerId || content.printerId
-              }`
-            );
+            notificationService.logSystemNotification("Print Job Success", {
+              filePath,
+              printerId: properties.headers.printerId || content.printerId,
+            });
           } catch (error) {
-            logger.error(`Print job failed: ${error.message}`);
+            notificationService.logPrintError(error, {
+              printerId: properties.headers?.printerId || content?.printerId,
+              isRetryable: true,
+            });
             throw error;
           }
         }
       );
 
       this.app.listen(config.port, () => {
-        logger.info(
-          `Print service for ${config.businessId} running on port ${config.port}`
-        );
+        notificationService.logSystemNotification(`Print service started`, {
+          businessId: config.businessId,
+          port: config.port,
+        });
       });
     } catch (error) {
-      logger.error(`Failed to start print service: ${error.message}`);
+      notificationService.logSystemNotification("Print Service Start Failed", {
+        error: error.message,
+        stack: error.stack,
+      });
       process.exit(1);
     }
   }
@@ -126,9 +182,12 @@ class PrintApp {
   async stop() {
     try {
       await rabbitMQService.close();
-      logger.info("Print service stopped");
+      notificationService.logSystemNotification("Print service stopped");
     } catch (error) {
-      logger.error(`Failed to stop print service: ${error.message}`);
+      notificationService.logSystemNotification("Print Service Stop Failed", {
+        error: error.message,
+        stack: error.stack,
+      });
       process.exit(1);
     }
   }

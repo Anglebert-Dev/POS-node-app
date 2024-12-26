@@ -1,26 +1,29 @@
 const net = require("net");
 const config = require("../config");
-const logger = require("./logger.service");
+const notificationService = require("./notification.service");
 const { PrintError } = require("../utils/errors");
 
 class PrinterServer {
   async print(printerId, pdfBuffer, metadata) {
-    // Find the printer by IP address
     const printer = Object.values(config.printers).find(
       (p) => p.ip === printerId
     );
 
     if (!printer) {
-      throw new PrintError(`Printer with address ${printerId} not found`);
+      const error = new PrintError(`Printer with address ${printerId} not found`);
+      notificationService.logPrintError(error, { printerId });
+      throw error;
     }
 
     if (printer.connection_type === "network") {
       return this.networkPrint(printer, pdfBuffer, metadata);
     }
 
-    throw new PrintError(
+    const error = new PrintError(
       `Unsupported printer type: ${printer.connection_type}`
     );
+    notificationService.logPrintError(error, { printerId });
+    throw error;
   }
 
   async networkPrint(printer, pdfBuffer, metadata) {
@@ -28,11 +31,19 @@ class PrinterServer {
       const client = new net.Socket();
       const timeout = setTimeout(() => {
         client.destroy();
-        reject(new PrintError("Print timeout"));
+        const error = new PrintError("Print timeout");
+        notificationService.logPrintError(error, {
+          printerId: printer.ip,
+          isRetryable: true
+        });
+        reject(error);
       }, 30000);
 
       client.connect(9100, printer.ip, () => {
-        logger.info(`Printing ${metadata.fileName} to ${printer.name}`);
+        notificationService.logSystemNotification(
+          `Printing ${metadata.fileName} to ${printer.name}`,
+          { printer: printer.name, file: metadata.fileName }
+        );
         client.write(pdfBuffer, () => {
           clearTimeout(timeout);
           client.end();
@@ -46,7 +57,12 @@ class PrinterServer {
 
       client.on("error", (error) => {
         clearTimeout(timeout);
-        reject(new PrintError(`Printing failed: ${error.message}`));
+        const printError = new PrintError(`Printing failed: ${error.message}`);
+        notificationService.logPrintError(printError, {
+          printerId: printer.ip,
+          isRetryable: error.code === 'ETIMEDOUT'
+        });
+        reject(printError);
       });
     });
   }

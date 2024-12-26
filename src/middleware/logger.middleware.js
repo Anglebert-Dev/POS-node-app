@@ -1,7 +1,11 @@
-const logger = require("../services/logger.service");
+const notificationService = require("../services/notification.service");
 
-const loggerMiddleware= (req, res, next) => {
-    logger.info(`${req.method} ${req.path}`);
+const loggerMiddleware = (req, res, next) => {
+    notificationService.logSystemNotification(`${req.method} ${req.path}`, {
+        method: req.method,
+        path: req.path,
+        ip: req.ip
+    });
     next();
 }
 
